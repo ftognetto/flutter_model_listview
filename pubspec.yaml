@@ -1,0 +1,17 @@
+name: flutter_model_listview
+description: An empowered ListView/GridView for Flutter with Load, Load more, Refresh and Error handling
+version: 0.0.1
+homepage: https://www.quantos.it
+
+environment:
+  sdk: ">=2.7.0 <3.0.0"
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  throttling: ^0.9.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
