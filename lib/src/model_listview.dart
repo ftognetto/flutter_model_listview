@@ -63,6 +63,8 @@ class ModelListView<T> extends StatefulWidget {
   /// Builder method for the single element of the [list]
   final ModelListViewBuilder<T> builder;
 
+  final bool reverse;
+
   final bool _sliver;
   final bool _grid;
 
@@ -73,7 +75,8 @@ class ModelListView<T> extends StatefulWidget {
     this.refresh, this.error, 
     this.treshold = 200,
     this.errorBuilder, this.loadingWidget, this.noResultsWidget, this.bottomLoader ,
-    this.firstChild
+    this.firstChild,
+    this.reverse = false
   }) : 
     _sliver = false,
     _grid = false,
@@ -88,7 +91,8 @@ class ModelListView<T> extends StatefulWidget {
     this.scrollController,
     this.treshold = 200,
     this.errorBuilder, this.loadingWidget, this.noResultsWidget, this.bottomLoader ,
-    this.firstChild
+    this.firstChild,
+    this.reverse = false
   }) : 
     _sliver = false,
     _grid = false,
@@ -106,6 +110,7 @@ class ModelListView<T> extends StatefulWidget {
     refresh = null,
     _sliver = true,
     _grid = false,
+    reverse = false,
     super(key: key);
 
 
@@ -116,7 +121,8 @@ class ModelListView<T> extends StatefulWidget {
     this.doNotLoadOnInit = false,
     this.scrollController, this.treshold = 400, //più alto rispetto alla list perchè il bottom loader occupa una riga di altezza
     this.errorBuilder, this.loadingWidget, this.noResultsWidget, this.bottomLoader ,
-    this.firstChild
+    this.firstChild,
+    this.reverse = false
   }) : 
     _sliver = false,
     _grid = true,
@@ -134,6 +140,7 @@ class ModelListView<T> extends StatefulWidget {
     refresh = null,
     _sliver = true,
     _grid = true,
+    reverse = false,
     super(key: key);
 
   @override
@@ -193,6 +200,7 @@ class _ModelListViewState<T> extends State<ModelListView<T>> {
                 shrinkWrap: false,
                 physics: AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(4.0),
+                reverse: widget.reverse,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3,
                   childAspectRatio: 1,
@@ -225,6 +233,7 @@ class _ModelListViewState<T> extends State<ModelListView<T>> {
                 physics: AlwaysScrollableScrollPhysics(),
                 controller: widget.scrollController,
                 itemCount: widget.list.length + 1,
+                reverse: true,
                 itemBuilder: (BuildContext context, int index) {
                   if (widget.firstChild != null) index--;
                   return _builder(index);
