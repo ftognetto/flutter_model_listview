@@ -245,13 +245,15 @@ class _ModelListViewState<T> extends State<ModelListView<T>> {
             list = RefreshIndicator(
               child: list,
               onRefresh: widget.refresh,
+
             );
           }
           if (!widget._sliver) {
             list = ScrollListener(
               child: list,
               treshold: widget.treshold,
-              onEndReach: widget.load
+              onEndReach: widget.load,
+              reverse: widget.reverse,
             );
           }
           
