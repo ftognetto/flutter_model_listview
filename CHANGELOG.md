@@ -1,3 +1,6 @@
+## [1.0.1] - 2021-03-04
+* Dependencies
+
 ## [1.0.0] - 2021-03-04
 * Migrate to null safety
 
