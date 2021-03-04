@@ -1,3 +1,6 @@
+## [1.0.0] - 2021-03-04
+* Migrate to null safety
+
 ## [0.0.1] - 2020-18-12
 * Initial release
 
