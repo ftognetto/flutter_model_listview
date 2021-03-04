@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 class CenterLoading extends StatelessWidget {
   
   final bool bigger;
-  final Color color;
-  final Widget child;
+  final Color? color;
+  final Widget? child;
   final bool overlay;
-  final Color overlayColor;
-  final String platform;
+  final Color? overlayColor;
+  final String? platform;
 
-  const CenterLoading({Key key, this.bigger = false, this.color, this.overlay = false, this.overlayColor, this.platform, this.child}) : super(key: key);
+  const CenterLoading({Key? key, this.bigger = false, this.color, this.overlay = false, this.overlayColor, this.platform, this.child}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +37,7 @@ class CenterLoading extends StatelessWidget {
           children: <Widget>[
             loading,
             SizedBox(height: 16,),
-            child
+            child!
           ],
         )
         : loading

@@ -6,13 +6,13 @@ class BottomLoader extends StatelessWidget {
   final bool sliver;
 
 
-  const BottomLoader({Key key, this.loadedAll, this.sliver = false}): super(key: key);
+  const BottomLoader({Key? key, this.loadedAll = false, this.sliver = false}): super(key: key);
 
   @override
   Widget build(BuildContext context) {
 
     Widget child;
-    if(loadedAll == null){
+    if(!loadedAll){
       child = _BottomLoader(); 
     }
     else{
@@ -24,7 +24,7 @@ class BottomLoader extends StatelessWidget {
 }
 
 class _BottomLoader extends StatelessWidget {
-  const _BottomLoader({Key key}) : super(key: key);
+  const _BottomLoader({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

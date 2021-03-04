@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 
 class NoContentWidget extends StatelessWidget {
 
-  final String text;
-  final Widget child;
+  final String? text;
+  final Widget? child;
   final bool center;
 
-  const NoContentWidget({Key key, this.text, this.child, this.center = true}) : super(key: key);
+  const NoContentWidget({Key? key, this.text, this.child, this.center = true}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

@@ -10,16 +10,16 @@ class SearchingWidget extends StatelessWidget {
   /// returns [loadinWidget] or [CenterLoading] otherwise
 
   final bool loadedAll;
-  final Widget noResultsWidget;
-  final String noResultText;
-  final Widget loadingWidget;
-  final String platform;
+  final Widget? noResultsWidget;
+  final String? noResultText;
+  final Widget? loadingWidget;
+  final String? platform;
 
-  const SearchingWidget({Key key, @required this.loadedAll, this.noResultsWidget, this.noResultText, this.loadingWidget, this.platform}) : super(key: key);
+  const SearchingWidget({Key? key, required this.loadedAll, this.noResultsWidget, this.noResultText, this.loadingWidget, this.platform}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return (loadedAll != null && loadedAll) 
+    return (loadedAll) 
     ? noResultsWidget ?? NoContentWidget(text: noResultText ?? 'Nessun risultato trovato.')
     : loadingWidget ?? CenterLoading(platform: platform);
   }

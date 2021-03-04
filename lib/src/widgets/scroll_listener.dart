@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:throttling/throttling.dart';
+import 'package:flutter_throttling/flutter_throttling.dart';
 
 class ScrollListener extends StatelessWidget {
 
@@ -11,7 +11,7 @@ class ScrollListener extends StatelessWidget {
 
   static final Throttling throttling = Throttling(duration: Duration(milliseconds: 500));
 
-  const ScrollListener({ Key key, @required this.child, @required this.onEndReach, this.treshold = 200, this.reverse = false }) : super(key: key);
+  const ScrollListener({ Key? key, required this.child, required this.onEndReach, this.treshold = 200, this.reverse = false }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +28,7 @@ class ScrollListener extends StatelessWidget {
             throttling.throttle(onEndReach);
           }
         }
-        
+        return true;
       },
     );
   }

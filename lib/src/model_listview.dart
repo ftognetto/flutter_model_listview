@@ -5,7 +5,7 @@ import 'package:flutter_model_listview/src/widgets/retry_button.dart';
 import 'package:flutter_model_listview/src/widgets/scroll_listener.dart';
 import 'package:flutter_model_listview/src/widgets/searching_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:throttling/throttling.dart';
+import 'package:flutter_throttling/flutter_throttling.dart';
 
 typedef ModelListViewBuilder<T> = Widget Function(BuildContext context, int index, T element);
 
@@ -29,36 +29,36 @@ class ModelListView<T> extends StatefulWidget {
 
   /// Function to be called when refresh happens. 
   /// Useless if sliver
-  final Future<void> Function() refresh; 
+  final Future<void> Function()? refresh; 
 
   /// [ScrollController] to be used with [ModelListView].
   /// Needed if sliver
-  final ScrollController scrollController; // needed if sliver
+  final ScrollController? scrollController; // needed if sliver
 
   /// Threshold of when [load] method will be called
   final double treshold;
 
   /// When [error] is not null it will be rendered [errorBuilder] on the end of the list
   /// Useful to create a "try again" widget
-  final String error;
+  final String? error;
 
 
-  final Widget Function(BuildContext context, String error) errorBuilder;
+  final Widget Function(BuildContext context, String error)? errorBuilder;
 
   /// Widget that will be rendered on the first [load] and at the end of the list
   /// Default will be [CenterLoading]
-  final Widget loadingWidget;
+  final Widget? loadingWidget;
 
   /// Widget that will be rendered when [list] is empty and [load] method does not return any elements
-  final Widget noResultsWidget;
+  final Widget? noResultsWidget;
 
   /// Widget that will be rendered at the end of the list
   /// Default is [CenterLoading]
-  final Widget bottomLoader;
+  final Widget? bottomLoader;
 
   /// Widget that will be rendered as the first child of the list
   /// Optional
-  final Widget firstChild;
+  final Widget? firstChild;
 
   /// Builder method for the single element of the [list]
   final ModelListViewBuilder<T> builder;
@@ -69,8 +69,8 @@ class ModelListView<T> extends StatefulWidget {
   final bool _grid;
 
   const ModelListView({
-    Key key, 
-    @required this.list, @required this.load, @required this.loadedAll, @required this.builder, 
+    Key? key, 
+    required this.list, required this.load, required this.loadedAll, required this.builder, 
     this.doNotLoadOnInit = false,
     this.refresh, this.error, 
     this.treshold = 200,
@@ -84,8 +84,8 @@ class ModelListView<T> extends StatefulWidget {
     super(key: key);
 
   const ModelListView.withScrollController({
-    Key key, 
-    @required this.list, @required this.load, @required this.loadedAll, @required this.builder, 
+    Key? key, 
+    required this.list, required this.load, required this.loadedAll, required this.builder, 
     this.doNotLoadOnInit = false,
     this.refresh, this.error, 
     this.scrollController,
@@ -99,11 +99,11 @@ class ModelListView<T> extends StatefulWidget {
     super(key: key);
 
   const ModelListView.sliver({
-    Key key, 
-    @required this.list, @required this.load, @required this.loadedAll, @required this.builder, 
+    Key? key, 
+    required this.list, required this.load, required this.loadedAll, required this.builder, 
     this.doNotLoadOnInit = false,
     this.error, 
-    @required this.scrollController, this.treshold = 200,
+    required this.scrollController, this.treshold = 200,
     this.errorBuilder, this.loadingWidget, this.noResultsWidget, this.bottomLoader ,
     this.firstChild
   }) :
@@ -115,8 +115,8 @@ class ModelListView<T> extends StatefulWidget {
 
 
   const ModelListView.grid({
-    Key key, 
-    @required this.list, @required this.load, @required this.loadedAll, @required this.builder, 
+    Key? key, 
+    required this.list, required this.load, required this.loadedAll, required this.builder, 
     this.refresh, this.error, 
     this.doNotLoadOnInit = false,
     this.scrollController, this.treshold = 400, //più alto rispetto alla list perchè il bottom loader occupa una riga di altezza
@@ -129,9 +129,9 @@ class ModelListView<T> extends StatefulWidget {
     super(key: key);
 
   const ModelListView.gridSliver({
-    Key key, 
-    @required this.list, @required this.load, @required this.loadedAll, @required this.builder, 
-    @required this.scrollController, this.treshold = 400,
+    Key? key, 
+    required this.list, required this.load, required this.loadedAll, required this.builder, 
+    required this.scrollController, this.treshold = 400,
     this.doNotLoadOnInit = false,
     this.error, 
     this.errorBuilder, this.loadingWidget, this.noResultsWidget, this.bottomLoader ,
@@ -149,7 +149,7 @@ class ModelListView<T> extends StatefulWidget {
 
 class _ModelListViewState<T> extends State<ModelListView<T>> {
 
-  Throttling throttling;
+  Throttling? throttling;
 
   @override 
   void initState(){
@@ -160,7 +160,7 @@ class _ModelListViewState<T> extends State<ModelListView<T>> {
     
     
     if (widget._sliver && widget.scrollController != null) {
-      widget.scrollController.addListener(_onScroll);
+      widget.scrollController!.addListener(_onScroll);
       throttling = Throttling(duration: Duration(milliseconds: 500));
     }
     
@@ -170,7 +170,7 @@ class _ModelListViewState<T> extends State<ModelListView<T>> {
   @override
   Widget build(BuildContext context) {
 
-        if(widget.list != null && widget.list.isNotEmpty){
+        if(widget.list.isNotEmpty){
 
           var list;
           if (widget._grid) {
@@ -244,7 +244,7 @@ class _ModelListViewState<T> extends State<ModelListView<T>> {
           if(widget.refresh != null && !widget._sliver) {
             list = RefreshIndicator(
               child: list,
-              onRefresh: widget.refresh,
+              onRefresh: widget.refresh!,
 
             );
           }
@@ -264,13 +264,13 @@ class _ModelListViewState<T> extends State<ModelListView<T>> {
           Widget child;
           if(widget.error != null) { 
             child = widget.errorBuilder != null 
-              ? widget.errorBuilder(context, widget.error ?? '') 
+              ? widget.errorBuilder!(context, widget.error ?? '') 
               : Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16), 
                 child: RetryButton(onPressed: widget.load)
               ); 
           }
-          else if(widget.list != null && widget.list.isEmpty) { 
+          else if(widget.list.isEmpty) { 
             child = SearchingWidget(loadedAll: widget.loadedAll, loadingWidget: widget.loadingWidget, noResultsWidget: widget.noResultsWidget); 
           }
           else { 
@@ -283,12 +283,12 @@ class _ModelListViewState<T> extends State<ModelListView<T>> {
   }
 
   Widget _builder(int index) {
-    if (index == -1 && widget.firstChild != null) { return widget.firstChild; }
+    if (index == -1 && widget.firstChild != null) { return widget.firstChild!; }
 
     if(index >= widget.list.length) {
       var child;
       if (widget.error != null) {
-        child = widget.errorBuilder != null ? widget.errorBuilder(context, widget.error) : Padding(padding: const EdgeInsets.symmetric(vertical: 16), child: RetryButton(onPressed: widget.load));
+        child = widget.errorBuilder != null ? widget.errorBuilder!(context, widget.error!) : Padding(padding: const EdgeInsets.symmetric(vertical: 16), child: RetryButton(onPressed: widget.load));
       }
       else {
         child = widget.bottomLoader ?? Padding(padding: const EdgeInsets.symmetric(vertical: 16), child: BottomLoader(loadedAll: widget.loadedAll));
@@ -306,8 +306,8 @@ class _ModelListViewState<T> extends State<ModelListView<T>> {
 
   void _onScroll() {
     if (!widget.loadedAll && widget.error == null) {
-      final maxScroll = widget.scrollController.position.maxScrollExtent;
-      final currentScroll = widget.scrollController.position.pixels;
+      final maxScroll = widget.scrollController!.position.maxScrollExtent;
+      final currentScroll = widget.scrollController!.position.pixels;
       if (currentScroll >= maxScroll - widget.treshold) {
         if (mounted) { throttling?.throttle(widget.load); }
       }
@@ -315,7 +315,7 @@ class _ModelListViewState<T> extends State<ModelListView<T>> {
     
   }
 
-  Widget _adjustLastGridChild({int listLength, int index, Widget child}) {
+  Widget _adjustLastGridChild({required int listLength, required int index, required Widget child}) {
     if (listLength % 3 == 0 && index == listLength + 1) {
       return child; 
     }
@@ -334,11 +334,10 @@ class _ModelListViewState<T> extends State<ModelListView<T>> {
   @override
   void dispose() { 
     if (widget.scrollController != null){
-      widget.scrollController.removeListener(_onScroll);
+      widget.scrollController!.removeListener(_onScroll);
     }
-    if (throttling != null) {
-      throttling.dispose();
-    }
+    throttling?.dispose();
+    
     
     super.dispose();
   }
