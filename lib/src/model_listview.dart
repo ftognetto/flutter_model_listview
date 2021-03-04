@@ -233,7 +233,7 @@ class _ModelListViewState<T> extends State<ModelListView<T>> {
                 physics: AlwaysScrollableScrollPhysics(),
                 controller: widget.scrollController,
                 itemCount: widget.list.length + 1,
-                reverse: true,
+                reverse: widget.reverse,
                 itemBuilder: (BuildContext context, int index) {
                   if (widget.firstChild != null) index--;
                   return _builder(index);
