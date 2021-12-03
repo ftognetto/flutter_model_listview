@@ -5,9 +5,11 @@ import 'package:flutter_model_listview/src/widgets/retry_button.dart';
 import 'package:flutter_model_listview/src/widgets/scroll_listener.dart';
 import 'package:flutter_model_listview/src/widgets/searching_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_throttling/flutter_throttling.dart';
 
 typedef ModelListViewBuilder<T> = Widget Function(BuildContext context, int index, T element);
+typedef ModelListViewStaggerdBuilder<T> = StaggeredTile? Function(BuildContext context, int index, T element);
 
 class ModelListView<T> extends StatefulWidget {
 
@@ -42,6 +44,15 @@ class ModelListView<T> extends StatefulWidget {
   /// Useful to create a "try again" widget
   final String? error;
 
+  /// GridView CrossAxisSpacing
+  final double? crossAxisSpacing;
+
+  /// GridView MainAxisSpacing
+  final double? mainAxisSpacing;
+
+  /// Padding of the list
+  final EdgeInsets? padding;
+
 
   final Widget Function(BuildContext context, String error)? errorBuilder;
 
@@ -63,10 +74,15 @@ class ModelListView<T> extends StatefulWidget {
   /// Builder method for the single element of the [list]
   final ModelListViewBuilder<T> builder;
 
+  /// Builder method for the tile size
+  /// Only needed if using staggered grid views
+  final ModelListViewStaggerdBuilder<T>? staggeredTileBuilder;
+
   final bool reverse;
 
   final bool _sliver;
   final bool _grid;
+  final bool _staggered;
 
   const ModelListView({
     Key? key, 
@@ -76,11 +92,16 @@ class ModelListView<T> extends StatefulWidget {
     this.treshold = 200,
     this.errorBuilder, this.loadingWidget, this.noResultsWidget, this.bottomLoader ,
     this.firstChild,
+    this.padding,
     this.reverse = false
   }) : 
     _sliver = false,
     _grid = false,
+    _staggered = false,
+    staggeredTileBuilder = null,
     scrollController = null,
+    crossAxisSpacing = 0,
+    mainAxisSpacing = 0,
     super(key: key);
 
   const ModelListView.withScrollController({
@@ -92,10 +113,15 @@ class ModelListView<T> extends StatefulWidget {
     this.treshold = 200,
     this.errorBuilder, this.loadingWidget, this.noResultsWidget, this.bottomLoader ,
     this.firstChild,
+    this.padding,
     this.reverse = false
   }) : 
     _sliver = false,
     _grid = false,
+    _staggered = false,
+    staggeredTileBuilder = null,
+    crossAxisSpacing = 0,
+    mainAxisSpacing = 0,
     super(key: key);
 
   const ModelListView.sliver({
@@ -105,12 +131,17 @@ class ModelListView<T> extends StatefulWidget {
     this.error, 
     required this.scrollController, this.treshold = 200,
     this.errorBuilder, this.loadingWidget, this.noResultsWidget, this.bottomLoader ,
-    this.firstChild
+    this.firstChild,
+    this.padding,
   }) :
     refresh = null,
     _sliver = true,
     _grid = false,
+    _staggered = false,
+    staggeredTileBuilder = null,
     reverse = false,
+    crossAxisSpacing = 0,
+    mainAxisSpacing = 0,
     super(key: key);
 
 
@@ -122,10 +153,14 @@ class ModelListView<T> extends StatefulWidget {
     this.scrollController, this.treshold = 400, //più alto rispetto alla list perchè il bottom loader occupa una riga di altezza
     this.errorBuilder, this.loadingWidget, this.noResultsWidget, this.bottomLoader ,
     this.firstChild,
-    this.reverse = false
+    this.padding,
+    this.reverse = false,
+    this.crossAxisSpacing = 2, this.mainAxisSpacing = 2
   }) : 
     _sliver = false,
     _grid = true,
+    _staggered = false,
+    staggeredTileBuilder = null,
     super(key: key);
 
   const ModelListView.gridSliver({
@@ -135,11 +170,34 @@ class ModelListView<T> extends StatefulWidget {
     this.doNotLoadOnInit = false,
     this.error, 
     this.errorBuilder, this.loadingWidget, this.noResultsWidget, this.bottomLoader ,
-    this.firstChild
+    this.firstChild,
+    this.padding,
+    this.crossAxisSpacing = 2, this.mainAxisSpacing = 2
   }) :
     refresh = null,
     _sliver = true,
     _grid = true,
+    _staggered = false,
+    staggeredTileBuilder = null,
+    reverse = false,
+    super(key: key);
+
+  const ModelListView.staggeredGridSliver({
+    Key? key, 
+    required this.list, required this.load, required this.loadedAll, required this.builder, 
+    required this.scrollController, this.treshold = 400,
+    required this.staggeredTileBuilder,
+    this.doNotLoadOnInit = false,
+    this.error, 
+    this.errorBuilder, this.loadingWidget, this.noResultsWidget, this.bottomLoader ,
+    this.firstChild,
+    this.padding,
+    this.crossAxisSpacing = 2, this.mainAxisSpacing = 2
+  }) :
+    refresh = null,
+    _sliver = true,
+    _grid = true,
+    _staggered = true,
     reverse = false,
     super(key: key);
 
@@ -175,37 +233,72 @@ class _ModelListViewState<T> extends State<ModelListView<T>> {
           var list;
           if (widget._grid) {
             if (widget._sliver) {
-              list = SliverGrid(
+              if (widget._staggered) {
+                list = SliverStaggeredGrid(
 
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  crossAxisSpacing: 2,
-                  mainAxisSpacing: 2,
                   
-                ),
-                delegate: SliverChildBuilderDelegate(
-                  (BuildContext context, int index) {
-                    if (widget.firstChild != null) index--;
-                    return _builder(index);
-                  },
+                  gridDelegate: SliverStaggeredGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: widget.crossAxisSpacing!,
+                    mainAxisSpacing: widget.mainAxisSpacing!,
+
+                    staggeredTileBuilder: (index) {
+                      if (widget.firstChild != null) index--;
+                      if (index == -1 && widget.firstChild != null) { return const StaggeredTile.count(1, 1); }
+                      if(index >= widget.list.length) { return const StaggeredTile.count(1, 1); }
+                      return widget.staggeredTileBuilder!(context, index, widget.list[index]);
+                    },
+                    staggeredTileCount:  widget.list.length + 3 + (widget.firstChild != null ? 1 : 0),
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    
+                    (BuildContext context, int index) {
+                      if (widget.firstChild != null) index--;
+                      return _builder(index);
+                    },
+                    childCount: widget.list.length + 3 + (widget.firstChild != null ? 1 : 0),
+                  ),
+                );
+                if (widget.padding != null) {
+                  list = SliverPadding(padding: widget.padding!, sliver: list);
+                }
+              }
+              else {
+                list = SliverGrid(
                   
-                  childCount: widget.list.length + 3 + (widget.firstChild != null ? 1 : 0),
-                ),
-              );
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: widget.crossAxisSpacing!,
+                    mainAxisSpacing: widget.mainAxisSpacing!
+                    
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (BuildContext context, int index) {
+                      if (widget.firstChild != null) index--;
+                      return _builder(index);
+                    },
+                    
+                    childCount: widget.list.length + 3 + (widget.firstChild != null ? 1 : 0),
+                  ),
+                );
+                if (widget.padding != null) {
+                  list = SliverPadding(padding: widget.padding!, sliver: list);
+                }
+              }
             }
             else {
               list = GridView.builder(
-      
+                
                 itemCount: widget.list.length + 3 + (widget.firstChild != null ? 1 : 0),
                 shrinkWrap: false,
                 physics: AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(4.0),
+                padding: widget.padding,
                 reverse: widget.reverse,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3,
                   childAspectRatio: 1,
-                  mainAxisSpacing: 4.0,
-                  crossAxisSpacing: 4.0
+                  mainAxisSpacing: widget.mainAxisSpacing!,
+                  crossAxisSpacing: widget.crossAxisSpacing!
                 ),
                 itemBuilder: (BuildContext context, int index) {
                   if (widget.firstChild != null) index--;
@@ -226,6 +319,9 @@ class _ModelListViewState<T> extends State<ModelListView<T>> {
                   childCount: widget.list.length + 1,
                 ),
               );
+              if (widget.padding != null) {
+                list = SliverPadding(padding: widget.padding!, sliver: list);
+              }
             }
             else {
               list = ListView.builder(
@@ -234,6 +330,7 @@ class _ModelListViewState<T> extends State<ModelListView<T>> {
                 controller: widget.scrollController,
                 itemCount: widget.list.length + 1,
                 reverse: widget.reverse,
+                padding: widget.padding,
                 itemBuilder: (BuildContext context, int index) {
                   if (widget.firstChild != null) index--;
                   return _builder(index);
