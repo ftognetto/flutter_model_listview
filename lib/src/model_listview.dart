@@ -7,9 +7,10 @@ import 'package:flutter_model_listview/src/widgets/searching_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_throttling/flutter_throttling.dart';
+import 'package:tuple/tuple.dart';
 
 typedef ModelListViewBuilder<T> = Widget Function(BuildContext context, int index, T element);
-typedef ModelListViewStaggerdBuilder<T> = StaggeredTile? Function(BuildContext context, int index, T element);
+typedef ModelListViewStaggerdBuilder<T> = Tuple2<int, double>? Function(BuildContext context, int index, T element);
 
 class ModelListView<T> extends StatefulWidget {
 
@@ -163,6 +164,24 @@ class ModelListView<T> extends StatefulWidget {
     staggeredTileBuilder = null,
     super(key: key);
 
+  const ModelListView.staggeredGrid({
+    Key? key, 
+    required this.list, required this.load, required this.loadedAll, required this.builder, 
+    this.refresh, this.error, 
+    required this.staggeredTileBuilder,
+    this.doNotLoadOnInit = false,
+    this.scrollController, this.treshold = 400, //più alto rispetto alla list perchè il bottom loader occupa una riga di altezza
+    this.errorBuilder, this.loadingWidget, this.noResultsWidget, this.bottomLoader ,
+    this.firstChild,
+    this.padding,
+    this.reverse = false,
+    this.crossAxisSpacing = 2, this.mainAxisSpacing = 2
+  }) : 
+    _sliver = false,
+    _grid = true,
+    _staggered = true,
+    super(key: key);
+
   const ModelListView.gridSliver({
     Key? key, 
     required this.list, required this.load, required this.loadedAll, required this.builder, 
@@ -246,7 +265,9 @@ class _ModelListViewState<T> extends State<ModelListView<T>> {
                       if (widget.firstChild != null) index--;
                       if (index == -1 && widget.firstChild != null) { return const StaggeredTile.count(1, 1); }
                       if(index >= widget.list.length) { return const StaggeredTile.count(1, 1); }
-                      return widget.staggeredTileBuilder!(context, index, widget.list[index]);
+                      final tuple = widget.staggeredTileBuilder!(context, index, widget.list[index]);
+                      if (tuple != null) { return StaggeredTile.count(tuple.item1, tuple.item2); }
+                      
                     },
                     staggeredTileCount:  widget.list.length + 3 + (widget.firstChild != null ? 1 : 0),
                   ),
@@ -287,24 +308,54 @@ class _ModelListViewState<T> extends State<ModelListView<T>> {
               }
             }
             else {
-              list = GridView.builder(
-                
-                itemCount: widget.list.length + 3 + (widget.firstChild != null ? 1 : 0),
-                shrinkWrap: false,
-                physics: AlwaysScrollableScrollPhysics(),
-                padding: widget.padding,
-                reverse: widget.reverse,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  childAspectRatio: 1,
-                  mainAxisSpacing: widget.mainAxisSpacing!,
-                  crossAxisSpacing: widget.crossAxisSpacing!
-                ),
-                itemBuilder: (BuildContext context, int index) {
-                  if (widget.firstChild != null) index--;
-                  return _builder(index);
-                }
-            );
+              if (widget._staggered) {
+                list = StaggeredGridView.builder(
+                  
+                  itemCount: widget.list.length + 3 + (widget.firstChild != null ? 1 : 0),
+                  shrinkWrap: false,
+                  physics: AlwaysScrollableScrollPhysics(),
+                  padding: widget.padding,
+                  reverse: widget.reverse,
+                  gridDelegate: SliverStaggeredGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    mainAxisSpacing: widget.mainAxisSpacing!,
+                    crossAxisSpacing: widget.crossAxisSpacing!,
+                    staggeredTileBuilder: (index) {
+                      if (widget.firstChild != null) index--;
+                      if (index == -1 && widget.firstChild != null) { return const StaggeredTile.count(1, 1); }
+                      if(index >= widget.list.length) { return const StaggeredTile.count(1, 1); } 
+                      final tuple = widget.staggeredTileBuilder!(context, index, widget.list[index]);
+                      if (tuple != null) { return StaggeredTile.count(tuple.item1, tuple.item2); }
+                    },
+                    staggeredTileCount: widget.list.length + 3 + (widget.firstChild != null ? 1 : 0),
+                  ),
+                  itemBuilder: (BuildContext context, int index) {
+                    if (widget.firstChild != null) index--;
+                    return _builder(index);
+                  }
+              );
+              }
+              else {
+                list = GridView.builder(
+                  
+                  itemCount: widget.list.length + 3 + (widget.firstChild != null ? 1 : 0),
+                  shrinkWrap: false,
+                  physics: AlwaysScrollableScrollPhysics(),
+                  padding: widget.padding,
+                  reverse: widget.reverse,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    childAspectRatio: 1,
+                    mainAxisSpacing: widget.mainAxisSpacing!,
+                    crossAxisSpacing: widget.crossAxisSpacing!
+                  ),
+                  itemBuilder: (BuildContext context, int index) {
+                    if (widget.firstChild != null) index--;
+                    return _builder(index);
+                  }
+                );
+              }
+              
             }
             
           }
@@ -363,12 +414,13 @@ class _ModelListViewState<T> extends State<ModelListView<T>> {
             child = widget.errorBuilder != null 
               ? widget.errorBuilder!(context, widget.error ?? '') 
               : Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16), 
+                padding: widget.padding ?? const EdgeInsets.symmetric(vertical: 16), 
                 child: RetryButton(onPressed: widget.load)
               ); 
           }
           else if(widget.list.isEmpty) { 
             child = SearchingWidget(loadedAll: widget.loadedAll, loadingWidget: widget.loadingWidget, noResultsWidget: widget.noResultsWidget); 
+            if (widget.padding != null) { child = Padding(padding: widget.padding!, child: child); }
           }
           else { 
             child = widget.loadingWidget ?? CenterLoading(); 
