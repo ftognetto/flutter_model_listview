@@ -79,6 +79,10 @@ class ModelListView<T> extends StatefulWidget {
   /// Only needed if using staggered grid views
   final ModelListViewStaggerdBuilder<T>? staggeredTileBuilder;
 
+  /// Separator builder
+  /// Only used in separated factory constructor
+  final Widget Function(BuildContext, int)? separatorBuilder;
+
   final bool reverse;
 
   final bool _sliver;
@@ -95,6 +99,28 @@ class ModelListView<T> extends StatefulWidget {
     this.firstChild,
     this.padding,
     this.reverse = false
+  }) : 
+    _sliver = false,
+    _grid = false,
+    _staggered = false,
+    staggeredTileBuilder = null,
+    scrollController = null,
+    crossAxisSpacing = 0,
+    mainAxisSpacing = 0,
+    separatorBuilder = null,
+    super(key: key);
+
+  const ModelListView.separated({
+    Key? key, 
+    required this.list, required this.load, required this.loadedAll, required this.builder, 
+    this.doNotLoadOnInit = false,
+    this.refresh, this.error, 
+    this.treshold = 200,
+    this.errorBuilder, this.loadingWidget, this.noResultsWidget, this.bottomLoader ,
+    this.firstChild,
+    this.padding,
+    this.reverse = false,
+    required this.separatorBuilder,
   }) : 
     _sliver = false,
     _grid = false,
@@ -123,6 +149,7 @@ class ModelListView<T> extends StatefulWidget {
     staggeredTileBuilder = null,
     crossAxisSpacing = 0,
     mainAxisSpacing = 0,
+    separatorBuilder = null,
     super(key: key);
 
   const ModelListView.sliver({
@@ -143,6 +170,7 @@ class ModelListView<T> extends StatefulWidget {
     reverse = false,
     crossAxisSpacing = 0,
     mainAxisSpacing = 0,
+    separatorBuilder = null,
     super(key: key);
 
 
@@ -162,6 +190,7 @@ class ModelListView<T> extends StatefulWidget {
     _grid = true,
     _staggered = false,
     staggeredTileBuilder = null,
+    separatorBuilder = null,
     super(key: key);
 
   const ModelListView.staggeredGrid({
@@ -180,6 +209,7 @@ class ModelListView<T> extends StatefulWidget {
     _sliver = false,
     _grid = true,
     _staggered = true,
+    separatorBuilder = null,
     super(key: key);
 
   const ModelListView.gridSliver({
@@ -199,6 +229,7 @@ class ModelListView<T> extends StatefulWidget {
     _staggered = false,
     staggeredTileBuilder = null,
     reverse = false,
+    separatorBuilder = null,
     super(key: key);
 
   const ModelListView.staggeredGridSliver({
@@ -218,6 +249,7 @@ class ModelListView<T> extends StatefulWidget {
     _grid = true,
     _staggered = true,
     reverse = false,
+    separatorBuilder = null,
     super(key: key);
 
   @override
@@ -375,18 +407,36 @@ class _ModelListViewState<T> extends State<ModelListView<T>> {
               }
             }
             else {
-              list = ListView.builder(
-                cacheExtent: MediaQuery.of(context).size.height * 10,
-                physics: AlwaysScrollableScrollPhysics(),
-                controller: widget.scrollController,
-                itemCount: widget.list.length + 1,
-                reverse: widget.reverse,
-                padding: widget.padding,
-                itemBuilder: (BuildContext context, int index) {
-                  if (widget.firstChild != null) index--;
-                  return _builder(index);
-                }
-              );
+              if (widget.separatorBuilder != null) {
+                list = ListView.separated(
+                  cacheExtent: MediaQuery.of(context).size.height * 10,
+                  physics: AlwaysScrollableScrollPhysics(),
+                  controller: widget.scrollController,
+                  itemCount: widget.list.length + 1,
+                  reverse: widget.reverse,
+                  padding: widget.padding,
+                  itemBuilder: (BuildContext context, int index) {
+                    if (widget.firstChild != null) index--;
+                    return _builder(index);
+                  },
+                  separatorBuilder: widget.separatorBuilder!,
+                );
+              }
+              else {
+                list = ListView.builder(
+                  cacheExtent: MediaQuery.of(context).size.height * 10,
+                  physics: AlwaysScrollableScrollPhysics(),
+                  controller: widget.scrollController,
+                  itemCount: widget.list.length + 1,
+                  reverse: widget.reverse,
+                  padding: widget.padding,
+                  itemBuilder: (BuildContext context, int index) {
+                    if (widget.firstChild != null) index--;
+                    return _builder(index);
+                  }
+                );
+              }
+              
             }
           }
           if(widget.refresh != null && !widget._sliver) {
