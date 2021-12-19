@@ -55,6 +55,9 @@ class ModelListView<T> extends StatefulWidget {
   final EdgeInsets? padding;
 
 
+  final ScrollPhysics? physics;
+
+
   final Widget Function(BuildContext context, String error)? errorBuilder;
 
   /// Widget that will be rendered on the first [load] and at the end of the list
@@ -98,6 +101,7 @@ class ModelListView<T> extends StatefulWidget {
     this.errorBuilder, this.loadingWidget, this.noResultsWidget, this.bottomLoader ,
     this.firstChild,
     this.padding,
+    this.physics,
     this.reverse = false
   }) : 
     _sliver = false,
@@ -119,6 +123,7 @@ class ModelListView<T> extends StatefulWidget {
     this.errorBuilder, this.loadingWidget, this.noResultsWidget, this.bottomLoader ,
     this.firstChild,
     this.padding,
+    this.physics,
     this.reverse = false,
     required this.separatorBuilder,
   }) : 
@@ -141,6 +146,7 @@ class ModelListView<T> extends StatefulWidget {
     this.errorBuilder, this.loadingWidget, this.noResultsWidget, this.bottomLoader ,
     this.firstChild,
     this.padding,
+    this.physics,
     this.reverse = false
   }) : 
     _sliver = false,
@@ -171,6 +177,7 @@ class ModelListView<T> extends StatefulWidget {
     crossAxisSpacing = 0,
     mainAxisSpacing = 0,
     separatorBuilder = null,
+    physics = null,
     super(key: key);
 
 
@@ -184,6 +191,7 @@ class ModelListView<T> extends StatefulWidget {
     this.firstChild,
     this.padding,
     this.reverse = false,
+    this.physics,
     this.crossAxisSpacing = 2, this.mainAxisSpacing = 2
   }) : 
     _sliver = false,
@@ -204,6 +212,7 @@ class ModelListView<T> extends StatefulWidget {
     this.firstChild,
     this.padding,
     this.reverse = false,
+    this.physics,
     this.crossAxisSpacing = 2, this.mainAxisSpacing = 2
   }) : 
     _sliver = false,
@@ -230,6 +239,7 @@ class ModelListView<T> extends StatefulWidget {
     staggeredTileBuilder = null,
     reverse = false,
     separatorBuilder = null,
+    physics = null,
     super(key: key);
 
   const ModelListView.staggeredGridSliver({
@@ -250,6 +260,7 @@ class ModelListView<T> extends StatefulWidget {
     _staggered = true,
     reverse = false,
     separatorBuilder = null,
+    physics = null,
     super(key: key);
 
   @override
@@ -345,7 +356,7 @@ class _ModelListViewState<T> extends State<ModelListView<T>> {
                   
                   itemCount: widget.list.length + 3 + (widget.firstChild != null ? 1 : 0),
                   shrinkWrap: false,
-                  physics: AlwaysScrollableScrollPhysics(),
+                  physics: widget.physics ?? AlwaysScrollableScrollPhysics(),
                   padding: widget.padding,
                   reverse: widget.reverse,
                   gridDelegate: SliverStaggeredGridDelegateWithFixedCrossAxisCount(
@@ -372,7 +383,7 @@ class _ModelListViewState<T> extends State<ModelListView<T>> {
                   
                   itemCount: widget.list.length + 3 + (widget.firstChild != null ? 1 : 0),
                   shrinkWrap: false,
-                  physics: AlwaysScrollableScrollPhysics(),
+                  physics: widget.physics ?? AlwaysScrollableScrollPhysics(),
                   padding: widget.padding,
                   reverse: widget.reverse,
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -410,7 +421,7 @@ class _ModelListViewState<T> extends State<ModelListView<T>> {
               if (widget.separatorBuilder != null) {
                 list = ListView.separated(
                   cacheExtent: MediaQuery.of(context).size.height * 10,
-                  physics: AlwaysScrollableScrollPhysics(),
+                  physics: widget.physics ?? AlwaysScrollableScrollPhysics(),
                   controller: widget.scrollController,
                   itemCount: widget.list.length + 1,
                   reverse: widget.reverse,
@@ -425,7 +436,7 @@ class _ModelListViewState<T> extends State<ModelListView<T>> {
               else {
                 list = ListView.builder(
                   cacheExtent: MediaQuery.of(context).size.height * 10,
-                  physics: AlwaysScrollableScrollPhysics(),
+                  physics: widget.physics ?? AlwaysScrollableScrollPhysics(),
                   controller: widget.scrollController,
                   itemCount: widget.list.length + 1,
                   reverse: widget.reverse,
