@@ -126,12 +126,12 @@ class ModelListView<T> extends StatefulWidget {
     this.physics,
     this.reverse = false,
     required this.separatorBuilder,
+    this.scrollController,
   }) : 
     _sliver = false,
     _grid = false,
     _staggered = false,
     staggeredTileBuilder = null,
-    scrollController = null,
     crossAxisSpacing = 0,
     mainAxisSpacing = 0,
     super(key: key);
