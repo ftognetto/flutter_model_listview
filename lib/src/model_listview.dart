@@ -11,6 +11,7 @@ import 'package:tuple/tuple.dart';
 
 typedef ModelListViewBuilder<T> = Widget Function(BuildContext context, int index, T element);
 typedef ModelListViewStaggerdBuilder<T> = Tuple2<int, double>? Function(BuildContext context, int index, T element);
+typedef ModelListViewDatatableBuilder<T> = DataTable Function(BuildContext context, List<T> elements);
 
 class ModelListView<T> extends StatefulWidget {
 
@@ -26,8 +27,8 @@ class ModelListView<T> extends StatefulWidget {
   final bool loadedAll;
 
   /// The default behaviour of [ModelListView] is to call [load] method in the [initState]
-  /// If this is not wanted set [doNotLoadOnInit] to [false]
-  final bool doNotLoadOnInit;
+  /// If this is not wanted set [loadOnInit] to [false]
+  final bool loadOnInit;
 
 
   /// Function to be called when refresh happens. 
@@ -76,7 +77,7 @@ class ModelListView<T> extends StatefulWidget {
   final Widget? firstChild;
 
   /// Builder method for the single element of the [list]
-  final ModelListViewBuilder<T> builder;
+  final ModelListViewBuilder<T>? builder;
 
   /// Builder method for the tile size
   /// Only needed if using staggered grid views
@@ -86,16 +87,21 @@ class ModelListView<T> extends StatefulWidget {
   /// Only used in separated factory constructor
   final Widget Function(BuildContext, int)? separatorBuilder;
 
+  /// Datatable builder
+  /// Only used in datatable factory constructor
+  final ModelListViewDatatableBuilder<T>? datatableBuilder;
+
   final bool reverse;
 
   final bool _sliver;
   final bool _grid;
   final bool _staggered;
+  final bool _datatable;
 
   const ModelListView({
     Key? key, 
     required this.list, required this.load, required this.loadedAll, required this.builder, 
-    this.doNotLoadOnInit = false,
+    this.loadOnInit = true,
     this.refresh, this.error, 
     this.treshold = 200,
     this.errorBuilder, this.loadingWidget, this.noResultsWidget, this.bottomLoader ,
@@ -107,17 +113,19 @@ class ModelListView<T> extends StatefulWidget {
     _sliver = false,
     _grid = false,
     _staggered = false,
+    _datatable = false,
     staggeredTileBuilder = null,
     scrollController = null,
     crossAxisSpacing = 0,
     mainAxisSpacing = 0,
     separatorBuilder = null,
+    datatableBuilder = null,
     super(key: key);
 
   const ModelListView.separated({
     Key? key, 
     required this.list, required this.load, required this.loadedAll, required this.builder, 
-    this.doNotLoadOnInit = false,
+    this.loadOnInit = true,
     this.refresh, this.error, 
     this.treshold = 200,
     this.errorBuilder, this.loadingWidget, this.noResultsWidget, this.bottomLoader ,
@@ -131,15 +139,17 @@ class ModelListView<T> extends StatefulWidget {
     _sliver = false,
     _grid = false,
     _staggered = false,
+    _datatable = false,
     staggeredTileBuilder = null,
     crossAxisSpacing = 0,
     mainAxisSpacing = 0,
+    datatableBuilder = null,
     super(key: key);
 
   const ModelListView.withScrollController({
     Key? key, 
     required this.list, required this.load, required this.loadedAll, required this.builder, 
-    this.doNotLoadOnInit = false,
+    this.loadOnInit = true,
     this.refresh, this.error, 
     this.scrollController,
     this.treshold = 200,
@@ -152,16 +162,18 @@ class ModelListView<T> extends StatefulWidget {
     _sliver = false,
     _grid = false,
     _staggered = false,
+    _datatable = false,
     staggeredTileBuilder = null,
     crossAxisSpacing = 0,
     mainAxisSpacing = 0,
     separatorBuilder = null,
+    datatableBuilder = null,
     super(key: key);
 
   const ModelListView.sliver({
     Key? key, 
     required this.list, required this.load, required this.loadedAll, required this.builder, 
-    this.doNotLoadOnInit = false,
+    this.loadOnInit = true,
     this.error, 
     required this.scrollController, this.treshold = 200,
     this.errorBuilder, this.loadingWidget, this.noResultsWidget, this.bottomLoader ,
@@ -172,12 +184,14 @@ class ModelListView<T> extends StatefulWidget {
     _sliver = true,
     _grid = false,
     _staggered = false,
+    _datatable = false,
     staggeredTileBuilder = null,
     reverse = false,
     crossAxisSpacing = 0,
     mainAxisSpacing = 0,
     separatorBuilder = null,
     physics = null,
+    datatableBuilder = null,
     super(key: key);
 
 
@@ -185,7 +199,7 @@ class ModelListView<T> extends StatefulWidget {
     Key? key, 
     required this.list, required this.load, required this.loadedAll, required this.builder, 
     this.refresh, this.error, 
-    this.doNotLoadOnInit = false,
+    this.loadOnInit = true,
     this.scrollController, this.treshold = 400, //più alto rispetto alla list perchè il bottom loader occupa una riga di altezza
     this.errorBuilder, this.loadingWidget, this.noResultsWidget, this.bottomLoader ,
     this.firstChild,
@@ -197,8 +211,10 @@ class ModelListView<T> extends StatefulWidget {
     _sliver = false,
     _grid = true,
     _staggered = false,
+    _datatable = false,
     staggeredTileBuilder = null,
     separatorBuilder = null,
+    datatableBuilder = null,
     super(key: key);
 
   const ModelListView.staggeredGrid({
@@ -206,7 +222,7 @@ class ModelListView<T> extends StatefulWidget {
     required this.list, required this.load, required this.loadedAll, required this.builder, 
     this.refresh, this.error, 
     required this.staggeredTileBuilder,
-    this.doNotLoadOnInit = false,
+    this.loadOnInit = true,
     this.scrollController, this.treshold = 400, //più alto rispetto alla list perchè il bottom loader occupa una riga di altezza
     this.errorBuilder, this.loadingWidget, this.noResultsWidget, this.bottomLoader ,
     this.firstChild,
@@ -218,14 +234,16 @@ class ModelListView<T> extends StatefulWidget {
     _sliver = false,
     _grid = true,
     _staggered = true,
+    _datatable = false,
     separatorBuilder = null,
+    datatableBuilder = null,
     super(key: key);
 
   const ModelListView.gridSliver({
     Key? key, 
     required this.list, required this.load, required this.loadedAll, required this.builder, 
     required this.scrollController, this.treshold = 400,
-    this.doNotLoadOnInit = false,
+    this.loadOnInit = true,
     this.error, 
     this.errorBuilder, this.loadingWidget, this.noResultsWidget, this.bottomLoader ,
     this.firstChild,
@@ -236,10 +254,12 @@ class ModelListView<T> extends StatefulWidget {
     _sliver = true,
     _grid = true,
     _staggered = false,
+    _datatable = false,
     staggeredTileBuilder = null,
     reverse = false,
     separatorBuilder = null,
     physics = null,
+    datatableBuilder = null,
     super(key: key);
 
   const ModelListView.staggeredGridSliver({
@@ -247,7 +267,7 @@ class ModelListView<T> extends StatefulWidget {
     required this.list, required this.load, required this.loadedAll, required this.builder, 
     required this.scrollController, this.treshold = 400,
     required this.staggeredTileBuilder,
-    this.doNotLoadOnInit = false,
+    this.loadOnInit = true,
     this.error, 
     this.errorBuilder, this.loadingWidget, this.noResultsWidget, this.bottomLoader ,
     this.firstChild,
@@ -258,9 +278,36 @@ class ModelListView<T> extends StatefulWidget {
     _sliver = true,
     _grid = true,
     _staggered = true,
+    _datatable = false,
     reverse = false,
     separatorBuilder = null,
     physics = null,
+    datatableBuilder = null,
+    super(key: key);
+
+  const ModelListView.datatable({
+    Key? key, 
+    required this.list, required this.load, required this.loadedAll,
+    required this.datatableBuilder,
+    this.loadOnInit = true,
+    this.refresh, this.error, 
+    this.treshold = 200,
+    this.errorBuilder, this.loadingWidget, this.noResultsWidget, this.bottomLoader ,
+    this.firstChild,
+    this.padding,
+    this.physics,
+    this.reverse = false
+  }) : 
+    _sliver = false,
+    _grid = false,
+    _staggered = false,
+    _datatable = true,
+    staggeredTileBuilder = null,
+    scrollController = null,
+    crossAxisSpacing = 0,
+    mainAxisSpacing = 0,
+    separatorBuilder = null,
+    builder = null,
     super(key: key);
 
   @override
@@ -274,10 +321,9 @@ class _ModelListViewState<T> extends State<ModelListView<T>> {
   @override 
   void initState(){
 
-    if (!widget.doNotLoadOnInit){
+    if (widget.loadOnInit){
       widget.load(); 
     }
-    
     
     if (widget._sliver && widget.scrollController != null) {
       widget.scrollController!.addListener(_onScroll);
@@ -402,6 +448,9 @@ class _ModelListViewState<T> extends State<ModelListView<T>> {
             }
             
           }
+          else if (widget._datatable) {
+            list = widget.datatableBuilder!(context, widget.list);
+          }
           else {
             if (widget._sliver) {
               list = SliverList(
@@ -509,7 +558,7 @@ class _ModelListViewState<T> extends State<ModelListView<T>> {
       return child;
     } 
     else {
-      return widget.builder(context, index, widget.list[index]);
+      return widget.builder!(context, index, widget.list[index]);
     }
 
   }
